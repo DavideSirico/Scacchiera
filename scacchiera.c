@@ -11,6 +11,7 @@ struct board{
 
 struct pawn{
     FILE *ptrFile;
+    char img[80];
     int x;
     int y;
     int DIM;
@@ -21,22 +22,33 @@ tempo=0;
 int main(){
     srand(time(NULL));
     FILE *ptrFile=fopen("prova.svg","w");
-    //TODO controllare la se i valori sono accettabili
-    //TODO calcolare la dimensione massima dei quadrati per evitare che la scacchiera esca dallo schermo
     scacchiera.ptrFile=ptrFile;
     pedina.ptrFile=ptrFile;
-    printf("Larghezza: ");
-    scanf("%d",&scacchiera.width);
-    fflush(stdin);
-    printf("Altezza: ");
-    scanf("%d",&scacchiera.height);
-    fflush(stdin);
-    //int m[width][height];
-    printf("dimensioni di un rettangolo: ");
-    scanf("%d",&scacchiera.DIM);
-    fflush(stdin);
+    printf("Larghezza minima: 3\nLarghezza massima: 20\n");
+	do
+    {
+    	printf("Larghezza: ");
+	    scanf("%d",&scacchiera.width);
+	    fflush(stdin);
+	}while(scacchiera.width<2||scacchiera.width>20);
+    
+    printf("Altezza minima: 3\nAltezza massima: 20\n");
+	do
+    {
+    	printf("Altezza: ");
+	    scanf("%d",&scacchiera.height);
+	    fflush(stdin);
+	}while(scacchiera.height<2||scacchiera.height>20);
+	
+    int m[scacchiera.width][scacchiera.height];
+    printf("Dimensioni minime: 30\nDimensioni massime: 100\n");
+    do
+    {
+	    printf("dimensioni di un rettangolo: ");
+	    scanf("%d",&scacchiera.DIM);
+	    fflush(stdin);
+	}while(scacchiera.DIM<30||scacchiera.DIM>100);
 
-    //TODO controllare se i valori sono uguali
     int x,y; //coordinate inizio e di fine
     pedina.DIM=scacchiera.DIM;
     do{
@@ -48,13 +60,13 @@ int main(){
         printf("Inserire posizione in cui si vuole arrivare: ");
         scanf("%d %d",&x,&y);
         fflush(stdin);
-    }while((x<0 || x>=scacchiera.width) || (y<0 || y>=scacchiera.height));
+    }while(((x<0 || x>=scacchiera.width) || (y<0 || y>=scacchiera.height)) || (pedina.x==x && pedina.y==y));
 
     int scelta;
     int flag;
 
     generate_board(scacchiera,pedina,x,y);
-    generate_pedina(pedina);
+    
     
     do{
         printf("Inserire modalita' di percorso:\n");
@@ -69,18 +81,27 @@ int main(){
         fflush(stdin);
         switch (scelta){
             case 1:
+                strcpy(pedina.img,"King.svg");
+                generate_pedina(pedina);
                 Re(scacchiera,pedina,x,y);
                 break;
             case 2:
+                strcpy(pedina.img,"Tower.svg");
+                generate_pedina(pedina);
                 Torre(pedina,scacchiera,x,y);
                 break;
             case 3:
-                MovimentoConBarriere(pedina,scacchiera,x,y);
+                strcpy(pedina.img,"Pawn.svg");
+                generate_obstacles(m,pedina,scacchiera,x,y);
+                generate_pedina(pedina);
+                path_obstacles(m,pedina,scacchiera,x,y);
                 break;
             case 4:
                 path_short(pedina,scacchiera,x,y);
                 break;
             case 5:
+                strcpy(pedina.img,"Queen.svg");
+                generate_pedina(pedina);
                 rand_short(pedina,scacchiera,x,y);
                 break;
             case 0:
@@ -92,7 +113,7 @@ int main(){
                 break;
             }
     }while(flag==1);
-    fprintf(pedina.ptrFile,"\n</circle>");
+    fprintf(pedina.ptrFile,"\n</image>");
     fprintf(ptrFile,"</svg>");
 
     fclose(ptrFile); 
@@ -101,18 +122,14 @@ int main(){
 
 //disegna la pedina
 void generate_pedina(struct pawn pedina){
-    //TODO sostituire il cerchio con qualcos'altro
-    fprintf(pedina.ptrFile,"\n<circle cx=\"%d\" cy=\"%d\" r=\"%d\" fill=\"red\">",pedina.x*pedina.DIM+(pedina.DIM/2),pedina.y*pedina.DIM+(pedina.DIM/2),pedina.DIM/2);
-
-    // fprintf(pedina.ptrFile,"\n\n<animate attributeName=\"cx\" from=\"%d\" to=\"%d\" dur=\"5s\" fill=\"freeze\" />",pedina.x*pedina.DIM-(pedina.DIM/2),x*pedina.DIM-(pedina.DIM/2));
-    // fprintf(pedina.ptrFile,"\n\n<animate attributeName=\"cy\" from=\"%d\" to=\"%d\" dur=\"5s\" fill=\"freeze\" />",pedina.y*pedina.DIM-(pedina.DIM/2),y*pedina.DIM-(pedina.DIM/2));
-    // fprintf(pedina.ptrFile,"\n</circle>");
+    fprintf(pedina.ptrFile,"\n<image x=\"%d\" y=\"%d\" width=\"%d\" height=\"%d\" href=\"%s\">",pedina.x*pedina.DIM,pedina.y*pedina.DIM,pedina.DIM,pedina.DIM,pedina.img);
 }
 
 //muove la pedina nelle coordinate x e y
 void move(struct pawn pedina,int x,int y){
-    fprintf(pedina.ptrFile,"\n<animate attributeName=\"cx\" to=\"%d\" dur=\"1s\" begin=\"%ds\" fill=\"freeze\" />",(x*pedina.DIM)+(pedina.DIM/2),tempo);
-    fprintf(pedina.ptrFile,"\n<animate attributeName=\"cy\" to=\"%d\" dur=\"1s\" begin=\"%ds\" fill=\"freeze\" />\n",(y*pedina.DIM)+(pedina.DIM/2),tempo);
+    arrow(x,y);
+    fprintf(pedina.ptrFile,"\n<animate attributeName=\"x\" to=\"%d\" dur=\"1s\" begin=\"%ds\" fill=\"freeze\" />",(x*pedina.DIM),tempo);
+    fprintf(pedina.ptrFile,"\n<animate attributeName=\"y\" to=\"%d\" dur=\"1s\" begin=\"%ds\" fill=\"freeze\" />\n",(y*pedina.DIM),tempo);
     tempo=tempo+1;
 }
 
@@ -275,48 +292,106 @@ void Torre(struct pawn pedina,struct board scacchiera,int x,int y){
     }while(!(pedina.x==x && pedina.y==y));
 }
 
-//non puo' funzionare
-/*
-void Alfiere(struct board scacchiera,struct pawn pedina,int x,int y){
+void generate_obstacles(int *m,struct pawn pedina, struct board scacchiera,int x,int y){
+	int w,h,i,j,ratio;
+	
+	for(i=0;i<scacchiera.width*scacchiera.height;i++)
+			*(m+i)=0;
+	
+	ratio=(scacchiera.width*scacchiera.height)/5;
+	for(i=0;i<ratio;i++)
+	{
+		do
+		{
+			w=rand()%scacchiera.width;
+			h=rand()%scacchiera.height;
+		}while(w==pedina.x && h==pedina.y || w==x && h==y);
+		*(m+(w*scacchiera.width)+h)=1;
+	}
+    visualizza_rosso(scacchiera,m);
+}
+
+void visualizza_rosso(struct board scacchiera,int *m){
+    for(int i=0;i<scacchiera.width;i++){
+        for(int j=0;j<scacchiera.height;j++){
+            if(*(m+(i*scacchiera.width)+j)==1){
+                printf("sono nel ciclo");
+                fprintf(scacchiera.ptrFile,"\n<circle cx=\"%d\" cy=\"%d\" r=\"%d\" fill=\"brown\"></circle>",i*scacchiera.DIM+(scacchiera.DIM/2),j*scacchiera.DIM+(scacchiera.DIM/2),scacchiera.DIM/2);
+            }
+        }
+    }
+}
+
+void path_obstacles(int *m,struct pawn pedina,struct board scacchiera,int x,int y){
     /*tabella comandi 
     0   1   2   3 -> x
     1   5   1   6
     2   4   0   2
     3   8   3   7
     |
-    y
+    y*/
     int direction,flag,prev;
     flag=0;
 	prev=0;
     //generazione direzione e movimento
-    direction=rand()%4+1;
+    direction=rand()%8+1;
     do{
         switch(direction){
             case 1:
-                if(pedina.y>0 && prev!=direction && pedina.x>0){
-                    pedina.x--;
+                printf("%d",*(m+(pedina.x*scacchiera.width)+pedina.y));
+                if(pedina.y>0 && prev!=direction && *(m+(pedina.x*scacchiera.width)+pedina.y-1)==0){
                     pedina.y--;
                     move(pedina,pedina.x,pedina.y);
                     prev=direction+2;
                 }
                 break;
             case 2:
-                if(pedina.y>0 && prev!=direction && pedina.x<scacchiera.width-1){
-                    pedina.y--;
+                if(pedina.x<scacchiera.width-1 && prev!=direction && *(m+((pedina.x+1)*scacchiera.width)+pedina.y)==0){
                     pedina.x++;
                     move(pedina,pedina.x,pedina.y);
                     prev=direction+2;
                 }
                 break;
             case 3:
-                if(pedina.y<scacchiera.height-1 && pedina.x<scacchiera.width-1 && pedina.x>0){
+                if(pedina.y<scacchiera.height-1 && prev!=direction && *(m+(pedina.x*scacchiera.width)+pedina.y+1)==0){
+                    pedina.y++;
+                    move(pedina,pedina.x,pedina.y);
+                    prev=direction-2;
+                }
+                break;
+            case 4:
+                if(pedina.x>0 && prev!=direction && *(m+((pedina.x-1)*scacchiera.width)+pedina.y)==0){
+                    pedina.x--;
+                    move(pedina,pedina.x,pedina.y);
+                    prev=direction-2;
+                }
+                break;
+            //diagonali
+            case 5:
+                if(pedina.y>0 && prev!=direction && pedina.x>0 && *(m+((pedina.x-1)*scacchiera.width)+pedina.y-1)==0){
+                    pedina.x--;
+                    pedina.y--;
+                    move(pedina,pedina.x,pedina.y);
+                    prev=direction+2;
+                }
+                break;
+            case 6:
+                if(pedina.y>0 && prev!=direction && pedina.x<scacchiera.width-1 && *(m+((pedina.x+1)*scacchiera.width)+pedina.y-1)==0){
+                    pedina.y--;
+                    pedina.x++;
+                    move(pedina,pedina.x,pedina.y);
+                    prev=direction+2;
+                }
+                break;
+            case 7:
+                if(pedina.y<scacchiera.height-1 && pedina.x<scacchiera.width-1 && pedina.x>0 && *(m+((pedina.x+1)*scacchiera.width)+pedina.y+1)==0){
                     pedina.x++;
                     pedina.y++;
                     move(pedina,pedina.x,pedina.y);
                     prev=direction-2;
                 }
-            case 4:
-                if(pedina.y<scacchiera.height-1 && pedina.x>0 && prev!=direction){
+            case 8:
+                if(pedina.y<scacchiera.height-1 && pedina.x>0 && prev!=direction && *(m+((pedina.x-1)*scacchiera.width)+pedina.y+1)==0){
                     pedina.y++;
                     pedina.x--;
                     move(pedina,pedina.x,pedina.y);
@@ -327,66 +402,9 @@ void Alfiere(struct board scacchiera,struct pawn pedina,int x,int y){
                 printf("Error: Wrong direction generated = %d\n",direction);
                 break;
         }
-		direction=rand()%4+1;
+		direction=rand()%8+1;
     }while(!(pedina.x==x && pedina.y==y));
 }
-*/
-
-//TODO movimento pedina in maniera libera ma rispettando le barriere
-void MovimentoConBarriere(struct pawn pedina,struct board scacchiera,int x,int y){
-    int direction,flag,prev;
-    flag=0;
-	prev=0;
-
-    //generazione direzione e movimento
-    direction=rand()%4+1;
-    do
-    {
-        switch(direction)
-        {
-            case 1:
-                if(y>0 && prev!=direction)
-                {
-                    pedina.y--;
-                    move(pedina,pedina.x,pedina.y);
-                    prev=direction+2;
-                }
-                break;
-            
-            case 2:
-                if(x<scacchiera.width && prev!=direction)
-                {
-                    pedina.x++;
-                    move(pedina,pedina.x,pedina.y);
-                    prev=direction+2;
-                }
-                break;
-            
-            case 3:
-                if(y<scacchiera.height && prev!=direction)
-                {
-                    pedina.y++;
-                    move(pedina,pedina.x,pedina.y);
-                    prev=direction-2;
-                }
-                break;
-
-            case 4:
-                if(x>0 && prev!=direction)
-                {
-                    pedina.x--;
-                    move(pedina,pedina.x,pedina.y);
-                    prev=direction-2;
-                }
-                break;
-            default:
-                printf("Errore");
-                break;
-        }
-		direction=rand()%4+1;
-    }while(!(pedina.x==x && pedina.y==y));
-}
-
 
 int path_short(struct pawn pedina,struct board scacchiera,int x,int y){
     if(x==pedina.x && y==pedina.y){
@@ -451,4 +469,14 @@ void rand_short(struct pawn pedina, struct board scacchiera, int x, int y){
     pedina.x=rand_x;
     pedina.y=rand_y;
     path_short(pedina,scacchiera,x,y);
+}
+
+void arrow(struct pawn pedina,int x1,int y1,int x2,int y2){
+    int DIM=pedina.DIM;
+    fprintf(pedina.ptrFile,"\n<defs>\n");
+    fprintf(pedina.ptrFile,"\t<marker id=\"arrowhead\" markerWidth=\"10\" markerHeight=\"7\" refX=\"0\" refY=\"3.5\" orient=\"auto\" fill=\"green\">\n");
+    fprintf(pedina.ptrFile,"\t\t<polygon points=\"0 0, 10 3.5, 0 7\" />\n");
+    fprintf(pedina.ptrFile,"\t</marker>\n");
+    fprintf(pedina.ptrFile,"</defs>\n");
+    fprintf(pedina.ptrFile,"<line x1=\"%d\" y1=\"%d\" x2=\"%d\" y2=\"%d\" stroke=\"green\" stroke-width=\"1\" marker-end=\"url(#arrowhead)\" />\n",(x1*DIM)+(DIM/2),(y1*DIM)+(DIM/2),(x2*DIM)+(DIM/2),(y2*DIM)+(DIM/2)); 
 }
