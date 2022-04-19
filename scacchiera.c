@@ -18,7 +18,6 @@ struct pawn{
     int DIM;
 } pedina;
 
-
 int tempo=0;//variabile per determinare l'inizio dell'animazione
 int directions[100000][2][2];//matrice per memorizare gli spostamenti della pedina
 
