@@ -77,7 +77,7 @@ int main(){
     }while(((x<0 || x>=scacchiera.width) || (y<0 || y>=scacchiera.height)) || (pedina.x==x && pedina.y==y));
 
     int scelta,flag;
-
+    flag=0;
     generate_board(scacchiera,pedina,x,y);
     
     do{
@@ -123,10 +123,9 @@ int main(){
                 break;
             default:
                 printf("\nScelta non valida!\n");
-                flag=1;
                 break;
-            }
-    }while(flag==1);
+        }
+    }while(flag==0);
     fprintf(pedina.ptrFile,"\n</image>");
     arrow(scacchiera);
     fprintf(ptrFile,"</svg>");
