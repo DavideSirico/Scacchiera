@@ -84,7 +84,6 @@ int main(){
     }while(((x<0 || x>=scacchiera.width) || (y<0 || y>=scacchiera.height)) || (pedina.x==x && pedina.y==y));
 
     int scelta,flag;
-    flag=0;
     //genero la scacchiera e le parti fondamentali del file svg
     generate_board(scacchiera,pedina,x,y);
     
@@ -100,9 +99,10 @@ int main(){
         printf("Scelta: ");
         scanf("%d", &scelta);
         fflush(stdin);
+        flag=0;
         switch (scelta){
             case 1:
-                strcpy(pedina.img,"IMG/RE.svg"); //copio il nome dell'immagine nelle proprieta' della struct
+                strcpy(pedina.img,"IMG/King.svg"); //copio il nome dell'immagine nelle proprieta' della struct
                 generate_pedina(pedina);
                 Re(scacchiera,pedina,x,y);
                 break;
@@ -128,13 +128,13 @@ int main(){
                 rand_short(pedina,scacchiera,x,y);
                 break;
             case 0:
-                flag=1;
                 break;
             default:
                 printf("\nScelta non valida!\n");
+                flag=1;
                 break;
         }
-    }while(flag==0);
+    }while(flag==1);
     
     fprintf(pedina.ptrFile,"\n</image>"); //chiudo il tag "image" aperto nella funzione generate_pedina
     arrow(scacchiera); //disegno le frecce sul file svg
