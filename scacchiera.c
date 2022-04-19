@@ -161,7 +161,7 @@ void move(struct pawn pedina,int x,int y){
 
 void generate_board(struct board scacchiera,struct pawn pedina,int x,int y){
     //apro il tag svg
-    fprintf(scacchiera.ptrFile,"<svg  version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\">");
+    fprintf(scacchiera.ptrFile,"<svg  version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 %d %d\">",scacchiera.width*scacchiera.DIM,scacchiera.height*scacchiera.DIM);
 
     fprintf(scacchiera.ptrFile,"\n<defs>\n");
     fprintf(scacchiera.ptrFile,"\t<marker id=\"arrowhead\" markerWidth=\"10\" markerHeight=\"7\" refX=\"0\" refY=\"3.5\" orient=\"auto\" fill=\"green\">\n");
