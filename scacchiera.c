@@ -35,7 +35,7 @@ void arrow(struct board scacchiera); //disegna le frecce in base alla matrice "d
 
 int main(){
     srand(time(NULL));
-    FILE *ptrFile=fopen("prova.svg","w");
+    FILE *ptrFile=fopen("board.svg","w");
     scacchiera.ptrFile=ptrFile;
     pedina.ptrFile=ptrFile;
 
